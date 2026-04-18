@@ -18,6 +18,7 @@ export class AuthService {
       data: {
         name: body.name,
         email: body.email,
+        description: body.description,
         password: await encryptedPassword,
       },
       select: {
