@@ -12,8 +12,8 @@ import {
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { OwnerOrAdminGuard } from 'src/auth/guards/role.guard';
+import { AuthGuard } from '../auth/guards/auth.guard';
+import { OwnerOrAdminGuard } from '../auth/guards/role.guard';
 
 @Controller('posts')
 export class PostsController {
