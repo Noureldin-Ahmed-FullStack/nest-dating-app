@@ -1,11 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 
 @Injectable()
 export class PostsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
   async create(userId: string, createPostDto: CreatePostDto) {
     return await this.prisma.post.create({
       data: {
@@ -23,9 +28,16 @@ export class PostsService {
       },
     });
   }
-
   async findAll() {
-    return await this.prisma.post.findMany({
+    const cacheKey = 'products';
+    const cachedPosts = await this.cacheManager.get(cacheKey);
+    // console.log(cachedPosts);
+
+    if (cachedPosts) {
+      console.log('Returning from cache');
+      return { cached: true ,products: cachedPosts};
+    }
+    const products = await this.prisma.post.findMany({
       select: {
         id: true,
         title: true,
@@ -43,6 +55,9 @@ export class PostsService {
         },
       },
     });
+    await this.cacheManager.set(cacheKey, products, 60 * 1000); // Cache for 60 seconds
+    console.log('Returning from database');
+    return { cached: false, products };
   }
 
   async findOne(id: string) {
